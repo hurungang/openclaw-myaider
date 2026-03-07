@@ -26,7 +26,7 @@
   "uiHints": {
     "url": {
       "label": "MyAider MCP Server URL",
-      "placeholder": "https://mcp.myaider.ai/your-token/mcp",
+      "placeholder": "https://myaider.ai/api/v1/mcp?apiKey=your-api-key",
       "sensitive": false
     },
     "enabled": {
