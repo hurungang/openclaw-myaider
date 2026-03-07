@@ -9,6 +9,8 @@ jobs:
   test-and-publish:
     name: Test and publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -22,8 +24,6 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-          cache: npm
-          cache-dependency-path: myaider/package-lock.json
 
       - name: Install dependencies
         run: npm install
