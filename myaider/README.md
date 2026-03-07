@@ -1,85 +1,19 @@
 # openclaw-plugin-myaider
 
-An OpenClaw plugin that integrates with [MyAider](https://www.myaider.ai) via MCP (Model Context Protocol). It provides two skills:
+An OpenClaw plugin that integrates with [MyAider](https://www.myaider.ai) via MCP (Model Context Protocol). It implements a native MCP client and provides two skills:
 
-1. **myaider-mcp** — a basic MCP client skill that lets your agent connect to the MyAider MCP server and invoke any of its tools.
+1. **myaider-mcp** — basic MCP client skill that lets agents interact with the MyAider MCP server via the `myaider_mcp` tool.
 2. **myaider-skill-importer** — a skill that downloads dynamic skills from the MyAider MCP server and installs them as local OpenClaw skills (using skill-creator), including upgrade/sync support.
 
 ---
 
 ## Overview
 
-MyAider is an MCP hub that exposes a catalogue of skills as MCP tools. This plugin bridges MyAider and OpenClaw so that:
+MyAider is an MCP hub that exposes a catalogue of skills as MCP tools. This plugin bridges MyAider and OpenClaw by:
 
-- Agents can call MyAider tools directly through the `myaider-mcp` skill.
-- Agents can import, create, and keep up-to-date a local copy of every MyAider skill through the `myaider-skill-importer` skill.
-
----
-
-## Installation
-
-### Via OpenClaw Extensions
-
-```bash
-cd ~/.openclaw/extensions/
-git clone https://github.com/hurungang/openclaw-plugins
-# or, if already cloned, ensure you have the latest:
-git pull
-```
-
-Then restart OpenClaw:
-
-```bash
-openclaw gateway restart
-```
-
-### Prerequisites
-
-Before using these skills, configure the MyAider MCP server in your agent:
-
-1. Go to **https://www.myaider.ai/mcp**
-2. Follow the setup instructions for your agent type
-3. Note the server name you choose — it will be used as `{SERVER_NAME}` in tool identifiers (e.g. `mcp__myaider__get_myaider_skills`)
-
----
-
-## Skills
-
-### `myaider-mcp`
-
-A basic MCP client skill for invoking MyAider tools directly.
-
-**Trigger examples:**
-- "List the tools available in my MyAider MCP"
-- "Use MyAider MCP to run [tool-name]"
-- "Call the MyAider tool to get my skills"
-
-The skill automatically discovers the MyAider server name by searching for the uniquely-named `get_myaider_skills` tool, so it works regardless of what name you gave the server.
-
----
-
-### `myaider-skill-importer`
-
-Imports skills from the MyAider MCP server and creates local OpenClaw skill files using `skill-creator`.
-
-**Import workflow:**
-1. Discovers the MyAider MCP server name
-2. Fetches all available skills via `get_myaider_skills`
-3. Presents skills to the user for selection
-4. Creates each selected skill as a local file (with full tool schemas embedded for token efficiency)
-
-**Upgrade workflow:**
-1. Fetches latest skill definitions with `get_myaider_skill_updates`
-2. Compares remote `updated_at` timestamps against local skills (`source: myaider`)
-3. Upgrades outdated skills and installs new ones
-
-**Trigger examples:**
-- "Import my MyAider skills"
-- "Create skills from MyAider"
-- "Upgrade my MyAider skills"
-- "Sync my MyAider skills to the latest version"
-
-> **Requirement:** The `skill-creator` skill must be installed. If it is not available, the importer will prompt you to install it first.
+- **Implementing a native MCP HTTP client** — OpenClaw does not support MCP natively; this plugin adds that capability.
+- Registering the **`myaider_mcp` agent tool** so agents can call MyAider tools without knowing the underlying MCP protocol.
+- Providing skills that teach agents how to use `myaider_mcp` to import and manage skills.
 
 ---
 
@@ -88,30 +22,155 @@ Imports skills from the MyAider MCP server and creates local OpenClaw skill file
 ```
 myaider/
 ├── README.md
-├── package.json
-├── openclaw.plugin.json
+├── package.json               # ESM Node package + @modelcontextprotocol/sdk dependency
+├── openclaw.plugin.json       # OpenClaw plugin manifest
+├── src/
+│   ├── index.js               # Plugin entry point — registers myaider_mcp tool
+│   └── http-transport.js      # MCP Streamable HTTP/SSE transport implementation
 └── skills/
     ├── myaider-mcp/
-    │   └── SKILL.md          # Basic MCP client skill
+    │   └── SKILL.md           # myaider-mcp skill
     └── myaider-skill-importer/
-        └── SKILL.md          # Skill import & upgrade workflow
+        └── SKILL.md           # myaider-skill-importer skill
 ```
 
 ---
 
-## How It Works
+## Installation
 
-### Server Name Discovery
+### Via OpenClaw CLI
 
-MyAider MCP tool identifiers follow the pattern `mcp__{SERVER_NAME}__<tool-name>`. The server name is set by the user at configuration time and may differ from `myaider`. Both skills discover the actual name at runtime by searching for the uniquely-named `get_myaider_skills` tool — they never hardcode a name.
+```bash
+# Install from the local directory
+openclaw plugins install ./myaider
 
-### Token Efficiency
+# Or install from GitHub (once published)
+openclaw plugins install @myaider/openclaw-plugin
+```
 
-When importing a skill, `myaider-skill-importer` embeds the full tool descriptions and parameter schemas directly in the generated skill file. This means the agent can use the skill without calling the MCP protocol for tool introspection, reducing token overhead.
+### Manual installation
 
-### Upgrade Tracking
+```bash
+cd ~/.openclaw/extensions/
+git clone https://github.com/hurungang/openclaw-plugins
+cd openclaw-plugins/myaider
+npm install
+openclaw gateway restart
+```
 
-Every skill created by `myaider-skill-importer` includes `source: myaider` and `updated_at` in its YAML frontmatter. The upgrade workflow uses these fields to detect which skills need refreshing.
+---
+
+## Configuration
+
+After installation, add your MyAider MCP URL to `openclaw.json`:
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "myaider": {
+        "enabled": true,
+        "config": {
+          "url": "https://mcp.myaider.ai/<your-token>/mcp"
+        }
+      }
+    }
+  }
+}
+```
+
+Get your personal MCP URL from **https://www.myaider.ai/mcp**.
+
+Then restart the gateway:
+
+```bash
+openclaw gateway restart
+```
+
+---
+
+## The `myaider_mcp` Tool
+
+The plugin registers a single **`myaider_mcp`** agent tool. Agents use it with the following actions:
+
+| Action | Description |
+|---|---|
+| `list` | List all tools available on the MyAider MCP server |
+| `call` | Call a specific tool by name |
+| `get_skills` | Shortcut: call `get_myaider_skills` — returns all available skills |
+| `get_skill_updates` | Shortcut: call `get_myaider_skill_updates` — returns skills with `updated_at` |
+
+### Example agent calls
+
+```json
+// List available tools
+{ "action": "list" }
+
+// Get available MyAider skills
+{ "action": "get_skills" }
+
+// Call any tool directly
+{ "action": "call", "tool": "some_myaider_tool", "args": { "key": "value" } }
+```
+
+---
+
+## Skills
+
+### `myaider-mcp`
+
+Teaches agents how to use the `myaider_mcp` tool, including setup verification and error handling.
+
+**Trigger examples:**
+- "List the tools available in my MyAider MCP"
+- "Call the MyAider tool [tool-name]"
+- "Get my MyAider skills"
+
+---
+
+### `myaider-skill-importer`
+
+Imports skills from the MyAider MCP server and creates local OpenClaw skill files using `skill-creator`.
+
+**Import workflow:**
+1. Calls `myaider_mcp(action="get_skills")` to fetch available skills
+2. Presents skills to the user for selection
+3. Creates each selected skill as a local file with full tool schemas embedded (token-efficient)
+
+**Upgrade workflow:**
+1. Calls `myaider_mcp(action="get_skill_updates")` to fetch latest skill versions
+2. Compares remote `updated_at` timestamps against local skills (`source: myaider`)
+3. Upgrades outdated skills and installs new ones after user confirmation
+
+**Trigger examples:**
+- "Import my MyAider skills"
+- "Upgrade my MyAider skills"
+- "Sync my MyAider skills to the latest version"
+
+> **Requirement:** The `skill-creator` skill must be installed. If unavailable, the importer will prompt you to install it first.
+
+---
+
+## Architecture
+
+```
+OpenClaw Agent
+     │
+     │  uses tool: myaider_mcp
+     ▼
+myaider_mcp (registered by plugin)
+     │
+     │  HTTP/SSE (MCP Streamable HTTP protocol)
+     ▼
+MyAider MCP Server (https://mcp.myaider.ai/...)
+     │
+     └─► get_myaider_skills, get_myaider_skill_updates, ...
+```
+
+### MCP Client Implementation
+
+- **`src/http-transport.js`** — implements `StreamableHTTPClientTransport` (MCP Streamable HTTP spec: POST for requests, SSE for server-initiated messages, `mcp-session-id` header for session continuity)
+- **`src/index.js`** — wraps the transport in `MyAiderMCPManager`, performs lazy connection on first tool call (satisfying OpenClaw's synchronous `register()` requirement), and registers the `myaider_mcp` tool
 
 ---
 

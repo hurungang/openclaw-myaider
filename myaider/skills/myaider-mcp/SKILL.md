@@ -2,9 +2,10 @@
 name: myaider-mcp
 version: 0.1.0
 description: >
-  Connect to the MyAider MCP server and invoke its tools. Use this skill when
-  the user wants to interact with MyAider tools directly, call any tool exposed
-  by the MyAider MCP, or when another skill requires MyAider MCP capabilities.
+  Connect to the MyAider MCP server and invoke its tools using the myaider_mcp
+  agent tool. Use this skill when the user wants to interact with MyAider tools
+  directly, list available MyAider tools, or when another skill requires
+  MyAider MCP capabilities.
 metadata:
   openclaw:
     homepage: https://www.myaider.ai/mcp
@@ -13,54 +14,74 @@ metadata:
 
 # MyAider MCP Client
 
-This skill enables your OpenClaw agent to connect to the [MyAider](https://www.myaider.ai) MCP server and invoke its tools.
+This skill enables your OpenClaw agent to connect to the [MyAider](https://www.myaider.ai) MCP server and invoke its tools via the `myaider_mcp` agent tool registered by the MyAider plugin.
 
-## Setup
+## Prerequisites
 
-Before using this skill, make sure the MyAider MCP server is configured in your OpenClaw agent.
+The **openclaw-plugin-myaider** plugin must be installed and configured with your MyAider MCP URL:
 
-1. Visit **https://www.myaider.ai/mcp** and follow the setup instructions for your agent.
-2. Once configured, the MCP server will expose tools with identifiers of the form `mcp__{SERVER_NAME}__<tool-name>`.
+1. Visit **https://www.myaider.ai/mcp** to obtain your personal MCP server URL.
+2. Add the following to your `openclaw.json`:
+   ```json
+   {
+     "plugins": {
+       "entries": {
+         "myaider": {
+           "enabled": true,
+           "config": {
+             "url": "https://mcp.myaider.ai/<your-token>/mcp"
+           }
+         }
+       }
+     }
+   }
+   ```
+3. Restart the OpenClaw gateway: `openclaw gateway restart`
 
-> **Note on naming:** The server name (`{SERVER_NAME}`) is whatever name the user assigned when configuring the MCP. It may not be `myaider`. Always discover the actual name at runtime.
+## Using the `myaider_mcp` Tool
 
-## Discovering the Server Name
+The plugin registers the **`myaider_mcp`** agent tool. Use it with the following actions:
 
-The MyAider MCP exposes a uniquely named tool called `get_myaider_skills`. To discover the server name:
+### List available tools
 
-1. Search the available tools for any tool whose name ends with `get_myaider_skills`.
-2. The full identifier will be `mcp__{SERVER_NAME}__get_myaider_skills`.
-3. Extract `{SERVER_NAME}` from the middle segment.
-4. Use `mcp__{SERVER_NAME}__<tool-name>` for all subsequent calls.
-
-If no such tool is found, the MyAider MCP is not yet configured. Direct the user to https://www.myaider.ai/mcp for setup instructions.
-
-## Invoking MyAider Tools
-
-Once the server name is discovered, invoke any MyAider tool using:
-
+```json
+{ "action": "list" }
 ```
-mcp__{SERVER_NAME}__<tool-name>
+
+Returns all tools exposed by the MyAider MCP server with their names, descriptions, and parameter schemas.
+
+### Call a specific tool
+
+```json
+{ "action": "call", "tool": "<tool-name>", "args": { ... } }
 ```
 
-with the required arguments as documented by that tool.
+Invokes any tool available on the MyAider MCP server.
 
-### Common MyAider MCP Tools
+### Get MyAider skills
 
-| Tool name | Purpose |
-|---|---|
-| `get_myaider_skills` | Retrieve all available skills from the MyAider server |
-| `get_myaider_skill_updates` | Retrieve skills with their latest `updated_at` timestamps |
+```json
+{ "action": "get_skills" }
+```
 
-Additional tools depend on the skills and integrations configured in the user's MyAider account.
+Shortcut for calling `get_myaider_skills` — returns all available skills from MyAider.
+
+### Get skill update information
+
+```json
+{ "action": "get_skill_updates" }
+```
+
+Shortcut for calling `get_myaider_skill_updates` — returns skills with their latest `updated_at` timestamps (used by the upgrade workflow).
 
 ## Example Usage
 
 - "List the tools available in my MyAider MCP"
-- "Call the MyAider tool to get my skills"
-- "Use MyAider MCP to run [tool-name]"
+- "Call the MyAider tool [tool-name] with arguments [args]"
+- "Get my MyAider skills"
 
 ## Error Handling
 
-- If the MCP server is unreachable, inform the user and suggest verifying their MyAider configuration at https://www.myaider.ai/mcp.
-- If a required tool argument is missing, ask the user to provide it before proceeding.
+- If the plugin is not configured, the tool returns an error message with setup instructions.
+- If the MCP server is unreachable, inform the user and suggest verifying their `url` setting at https://www.myaider.ai/mcp.
+- If a required tool argument is missing, ask the user to provide it before retrying.
