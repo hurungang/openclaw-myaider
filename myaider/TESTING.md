@@ -30,7 +30,7 @@ Get your personal MCP URL from **https://www.myaider.ai/mcp**, then add it to `~
       "myaider": {
         "enabled": true,
         "config": {
-          "url": "https://mcp.myaider.ai/<your-token>/mcp"
+          "url": "https://myaider.ai/api/v1/mcp?apiKey=<your-api-key>"
         }
       }
     }
@@ -101,7 +101,7 @@ openclaw logs | grep 'MyAider MCP'
 On successful connection you'll see:
 
 ```
-[MyAider MCP] Connecting to https://mcp.myaider.ai/...
+[MyAider MCP] Connecting to https://myaider.ai/api/v1/mcp?apiKey=...
 [MyAider MCP] Connected — N tool(s) available
 ```
 
