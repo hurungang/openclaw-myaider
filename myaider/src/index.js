@@ -374,6 +374,22 @@ function buildSkillMd(skill) {
     `metadata: ${metadata}`,
     '---',
     '',
+    '## Dependencies',
+    '',
+    'This skill requires the **myaider** skill and the `myaider_mcp` agent tool provided by the',
+    'myaider OpenClaw plugin.',
+    '',
+    '> **Tool Call Translation** — Instructions in this skill may reference MCP tool names',
+    '> directly (e.g. `some_tool_name`). In OpenClaw these are **not** native agent tools.',
+    '> Every such reference must be routed through `myaider_mcp`:',
+    '>',
+    '> ```json',
+    '> { "action": "call", "tool": "<tool-name>", "args": { ... } }',
+    '> ```',
+    '>',
+    '> Never call MCP tool names as if they were native OpenClaw tools.',
+    '> Always use `myaider_mcp` with `action: "call"` to invoke them.',
+    '',
   ];
 
   if (skill.instructions) {

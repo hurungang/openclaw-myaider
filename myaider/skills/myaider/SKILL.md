@@ -74,6 +74,33 @@ Shortcut for calling `get_myaider_skills` — returns all available skills from 
 
 Shortcut for calling `get_myaider_skill_updates` — returns skills with their latest `updated_at` timestamps.
 
+## Interpreting MCP Tool Instructions from MyAider Skills
+
+MyAider skills (both auto-downloaded and manually synced) reference MCP tool names directly in
+their instructions, for example `logfire__alert_status` or `logfire__query_run`. These are **MCP
+tool names**, not native OpenClaw agent tools.
+
+**Always translate them into `myaider_mcp` calls:**
+
+| Skill instruction says | What you must do in OpenClaw |
+|---|---|
+| Call `some_tool` with `{ ... }` | `myaider_mcp` → `{ "action": "call", "tool": "some_tool", "args": { ... } }` |
+| Use tool `some_tool` | `myaider_mcp` → `{ "action": "call", "tool": "some_tool", "args": {} }` |
+
+**Example** — a downloaded skill says:
+
+> Call `logfire__alert_status` with parameters `{ "service": "auth-service", "time_window": "15m" }`.
+
+You must execute this as:
+
+```json
+{ "action": "call", "tool": "logfire__alert_status", "args": { "service": "auth-service", "time_window": "15m" } }
+```
+
+via the `myaider_mcp` agent tool. **Never** invoke MCP tool names as if they were native OpenClaw
+tools — they do not exist as direct tools. The `myaider_mcp` tool is the only gateway to the
+MyAider MCP server.
+
 ## Downloading and Syncing Skills
 
 Skills are automatically synced when the plugin loads. To manually trigger a sync (import new skills or upgrade existing ones):
