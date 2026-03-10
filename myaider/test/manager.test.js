@@ -404,3 +404,63 @@ describe('myaider_mcp action=sync_skills', () => {
     assert.equal(result.details.skillsDir, tmpDir);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Tests: startup auto-sync
+// ---------------------------------------------------------------------------
+
+describe('startup auto-sync', () => {
+  let server;
+  let api;
+  let tmpDir;
+
+  before(async () => {
+    server = await startMockServer();
+    tmpDir = await mkdtemp(join(tmpdir(), 'myaider-startup-'));
+    api = makeStubApi(server.url, tmpDir);
+    register(api);
+  });
+
+  after(async () => {
+    await api._hooks['gateway_stop']?.fn();
+    await server.stop();
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  /** Poll until the predicate returns true or the deadline is exceeded. */
+  async function waitFor(predicate, timeoutMs = 5000) {
+    const deadline = Date.now() + timeoutMs;
+    while (!predicate() && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return predicate();
+  }
+
+  it('logs an Auto-synced message after plugin loads', async () => {
+    const ok = await waitFor(() =>
+      api._logs.info.some((m) => m.includes('Auto-synced'))
+    );
+    assert.ok(ok, 'expected "Auto-synced" log message from startup sync');
+  });
+
+  it('writes SKILL.md files during startup auto-sync', async () => {
+    await waitFor(() => api._logs.info.some((m) => m.includes('Auto-synced')));
+    const skillMdPath = join(tmpDir, MOCK_SKILLS[0].name, 'SKILL.md');
+    const content = await readFile(skillMdPath, 'utf-8');
+    assert.ok(content.includes(`name: ${MOCK_SKILLS[0].name}`), 'SKILL.md written on startup');
+  });
+
+  it('does not auto-sync when no URL is configured', async () => {
+    const noUrlApi = makeStubApi(undefined);
+    noUrlApi.pluginConfig = {};
+    register(noUrlApi);
+    // Give the event loop a chance to fire any setImmediate callbacks
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.ok(
+      !noUrlApi._logs.info.some((m) => m.includes('Auto-synced')),
+      'should not auto-sync without a URL'
+    );
+    // No connection was established, but clean up the hook anyway
+    await noUrlApi._hooks['gateway_stop']?.fn();
+  });
+});
