@@ -7,6 +7,7 @@
   "files": [
     "src",
     "skills",
+    "skills-dynamic",
     "openclaw.plugin.json",
     "README.md",
     "TESTING.md"
