@@ -14,7 +14,8 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from './http-transport.js';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { existsSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // ---------------------------------------------------------------------------
@@ -104,6 +105,16 @@ export default function register(api) {
   const skillsDir =
     config.skillsDir ??
     join(fileURLToPath(new URL('..', import.meta.url)), 'skills-dynamic');
+
+  // Ensure skills-dynamic directory exists (OpenClaw loads skills from this path)
+  try {
+    if (!existsSync(skillsDir)) {
+      mkdirSync(skillsDir, { recursive: true });
+      api.logger.info(`[MyAider MCP] Created skills directory: ${skillsDir}`);
+    }
+  } catch (err) {
+    api.logger.warn(`[MyAider MCP] Could not create skills directory: ${err.message}`);
+  }
 
   if (!mcpUrl) {
     api.logger.warn(
