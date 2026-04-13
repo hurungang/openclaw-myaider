@@ -66,6 +66,6 @@ jobs:
       - name: Publish to ClawHub
         run: |
           clawhub login --token "$CLAWHUB_SECRET" --no-browser
-          clawhub package publish . --json
+          clawhub package publish .
         env:
           CLAWHUB_SECRET: ${{ secrets.CLAWHUB_SECRET }}
