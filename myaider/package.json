@@ -27,7 +27,7 @@
     "node": ">=22"
   },
   "peerDependencies": {
-    "openclaw": ">=2025.1.0"
+    "openclaw": ">=2026.3.12"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0"
@@ -37,8 +37,13 @@
     "prepare": "echo 'No build step required (ESM JS)'"
   },
   "openclaw": {
+    "build": {
+      "openclawVersion": "2026.3.12",
+      "pluginSdkVersion": "2026.3.12"
+    },
     "compat": {
-      "pluginApi": "2025.1.0"
+      "pluginApi": "2026.3.12",
+      "minGatewayVersion": "2026.3.12"
     },
     "extensions": [
       "./src/index.js"
