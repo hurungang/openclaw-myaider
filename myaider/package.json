@@ -37,6 +37,9 @@
     "prepare": "echo 'No build step required (ESM JS)'"
   },
   "openclaw": {
+    "compat": {
+      "pluginApi": "2025.1.0"
+    },
     "extensions": [
       "./src/index.js"
     ]
