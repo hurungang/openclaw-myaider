@@ -1,4 +1,4 @@
-name: Publish to npm
+name: Publish to ClawHub
 
 on:
   push:
@@ -25,7 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm install
@@ -61,7 +60,12 @@ jobs:
           git tag "${{ steps.version.outputs.version }}"
           git push origin HEAD:main --follow-tags
 
-      - name: Publish to npm
-        run: npm publish --access public
+      - name: Install ClawHub CLI
+        run: npm i -g clawhub
+
+      - name: Publish to ClawHub
+        run: |
+          clawhub login --token "$CLAWHUB_SECRET" --no-browser
+          clawhub package publish . --json
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CLAWHUB_SECRET: ${{ secrets.CLAWHUB_SECRET }}
