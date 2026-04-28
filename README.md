@@ -65,7 +65,7 @@ graph LR
 ## Installation
 
 ```bash
-openclaw plugins install myaider
+openclaw plugins install @myaider/myaider
 ```
 
 Or install from source:

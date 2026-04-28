@@ -40,7 +40,7 @@ The diagram below shows how an OpenClaw agent, skills, dehydrated tools, and the
 ## Installation
 
 ```bash
-openclaw plugins install myaider
+openclaw plugins install @myaider/myaider
 ```
 
 Or install from source:

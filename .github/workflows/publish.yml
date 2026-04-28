@@ -1,4 +1,4 @@
-name: Publish to ClawHub
+name: Publish to ClawHub and npm
 
 on:
   push:
@@ -69,3 +69,20 @@ jobs:
           clawhub package publish . --source-repo "$GITHUB_REPOSITORY" --source-commit "$GITHUB_SHA" --source-ref "$GITHUB_REF"
         env:
           CLAWHUB_SECRET: ${{ secrets.CLAWHUB_SECRET }}
+
+      - name: Set up Node.js for npm publish
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish to npm
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "@myaider/myaider@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "Version ${PACKAGE_VERSION} is already published to npm, skipping."
+          else
+            npm publish --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -42,7 +42,7 @@
       "pluginSdkVersion": "2026.3.12"
     },
     "compat": {
-      "pluginApi": "2026.3.12",
+      "pluginApi": ">=2026.3.12",
       "minGatewayVersion": "2026.3.12"
     },
     "extensions": [
