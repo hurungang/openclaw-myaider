@@ -1,6 +1,6 @@
 {
   "name": "@myaider/myaider",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "OpenClaw plugin for MyAider MCP integration — connect to myaider.ai MCP, invoke tools, and import dynamic skills into OpenClaw.",
   "type": "module",
   "main": "src/index.js",
