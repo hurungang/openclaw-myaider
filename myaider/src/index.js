@@ -5,8 +5,8 @@
  * the MyAider MCP server and invoke its tools (list, call).
  *
  * Configuration (in openclaw.json):
- *   plugins.entries.myaider.config.url   — MyAider MCP server URL
- *   plugins.entries.myaider.config.enabled — enable/disable (default: true)
+ *   plugins.entries['@myaider/myaider'].config.url   — MyAider MCP server URL
+ *   plugins.entries['@myaider/myaider'].config.enabled — enable/disable (default: true)
  *
  * @see https://www.myaider.ai/mcp
  */
@@ -135,7 +135,7 @@ export default function register(api) {
   if (!mcpUrl) {
     api.logger.warn(
       '[MyAider MCP] No MCP URL configured. ' +
-      'Set plugins.entries.myaider.config.url in openclaw.json. ' +
+      'Set plugins.entries["@myaider/myaider"].config.url in openclaw.json. ' +
       'Get your URL from https://www.myaider.ai/mcp'
     );
   }
@@ -148,7 +148,7 @@ export default function register(api) {
     if (!mcpUrl) {
       throw new Error(
         'MyAider MCP URL not configured. ' +
-        'Add plugins.entries.myaider.config.url to openclaw.json. ' +
+        'Add plugins.entries["@myaider/myaider"].config.url to openclaw.json. ' +
         'Visit https://www.myaider.ai/mcp for setup instructions.'
       );
     }

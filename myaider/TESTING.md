@@ -24,7 +24,7 @@ npm install
 Get your personal MCP URL from **https://www.myaider.ai/mcp**, then set it via CLI:
 
 ```bash
-openclaw config set plugins.entries.myaider.config.url "https://myaider.ai/api/v1/mcp?apiKey=<your-api-key>"
+openclaw config set 'plugins.entries["@myaider/myaider"].config.url' "https://myaider.ai/api/v1/mcp?apiKey=<your-api-key>"
 ```
 
 Or add it manually to `~/.openclaw/openclaw.json`:
@@ -33,7 +33,7 @@ Or add it manually to `~/.openclaw/openclaw.json`:
 {
   "plugins": {
     "entries": {
-      "myaider": {
+      "@myaider/myaider": {
         "enabled": true,
         "config": {
           "url": "https://myaider.ai/api/v1/mcp?apiKey=<your-api-key>"
@@ -117,7 +117,7 @@ On successful connection you'll see:
 
 | Symptom | Fix |
 |---|---|
-| `No MCP URL configured` warning at startup | Add `url` to `plugins.entries.myaider.config` |
+| `No MCP URL configured` warning at startup | Add `url` to `plugins.entries["@myaider/myaider"].config` |
 | `MyAider MCP URL not configured` error in chat | Same as above; plugin loaded but URL is missing |
 | `fetch failed` / connection refused | Verify your MyAider MCP URL at https://www.myaider.ai/mcp |
 | Plugin not found | Check `openclaw plugins list`; ensure the directory is under `~/.openclaw/extensions/` |

@@ -12,7 +12,7 @@ Skills from MyAider are **automatically downloaded** into the plugin's `skills-d
 
 ## Prerequisites
 
-The **myaider** plugin must be installed and configured with your MyAider MCP URL:
+The **@myaider/myaider** plugin must be installed and configured with your MyAider MCP URL:
 
 1. Visit **https://www.myaider.ai/mcp** to obtain your personal MCP server URL.
 2. Add the following to your `openclaw.json`:
@@ -20,7 +20,7 @@ The **myaider** plugin must be installed and configured with your MyAider MCP UR
    {
      "plugins": {
        "entries": {
-         "myaider": {
+         "@myaider/myaider": {
            "enabled": true,
            "config": {
              "url": "https://myaider.ai/api/v1/mcp?apiKey=<your-api-key>"
